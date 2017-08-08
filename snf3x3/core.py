@@ -1,9 +1,5 @@
 import numpy as np
-
-try:
-    from math import gcd
-except ImportError:
-    from fractions import gcd
+from snf3x3.xgcd import xgcd
 
 class SNF3x3(object):
     def __init__(self, A):
@@ -17,7 +13,7 @@ class SNF3x3(object):
     def run(self):
         self._first_column()
 
-    def _first_column(self):
+    def _first_column_and_row(self):
         i = self._search_first_pivot()
         if i > 0:
             self._swap_rows(0, i)
@@ -30,7 +26,13 @@ class SNF3x3(object):
         else:
             return None
 
-        b = gcd(A[0, 0], A[j, 0])
+        r, s, t = xgcd([A[0, 0], A[j, 0]])
+        self._zero_row(0, j, A[0, 0], A[j, 0], r, s, t)
+
+        if j == 1:
+            A = self._A
+            r, s, t = xgcd([A[0, 0], A[2, 0]])
+            self._zero_row(0, 2, A[0, 0], A[2, 0], r, s, t)
 
     def __str__(self):
         return str(self._A)
@@ -60,3 +62,17 @@ class SNF3x3(object):
         self._R = R
         self._Q.append(R.copy())
         self._A = np.dot(self._A, R)
+
+    def _zero_row(self, i, j, a, b, r, s, t):
+        """ [ii ij]
+            [ji jj] is a (k,k) minor of original 3x3 matrix.
+        """
+
+        L = np.eye(3, dtype='intc')
+        L[i, i] = s
+        L[i, j] = t
+        L[j, i] = -b // r
+        L[j, j] = a // r
+        self._L = L
+        self._P.append(L.copy())
+        self._A = np.dot(L, self._A)

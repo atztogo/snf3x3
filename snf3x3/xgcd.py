@@ -14,7 +14,7 @@ class Xgcd(object):
         s1 = 0
         t0 = 0
         t1 = 1
-        for i in range(100):
+        for i in range(1000):
             r0, r1, s0, s1, t0, t1 = self._step(r0, r1, s0, s1, t0, t1)
             if r1 == 0:
                 break
