@@ -18,13 +18,23 @@ class TestCore(unittest.TestCase):
         mat = self._get_random_mat()
         snf = SNF3x3(mat)
         print()
-        print(snf)
+        print(snf.A)
+        print(np.linalg.det(snf.A))
         snf.run()
-        print(snf)
+        print(snf.A)
+        print(np.linalg.det(snf.A))
+
+        print("P")
+        for P in np.array(snf.P):
+            print(P)
+        print("Q")
+        for Q in np.array(snf.Q):
+            print(Q)
 
     def _get_random_mat(self):
-        mat = np.random.randint(10, size=(3, 3))
-        if abs(np.linalg.det(mat)) < 0.5:
+        k = 30
+        mat = np.random.randint(k, size=(3, 3)) - k // 2
+        if np.linalg.det(mat) < 0.5:
             mat = self._get_random_mat()
         return mat
 
