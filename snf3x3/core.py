@@ -5,9 +5,11 @@ class SNF3x3(object):
     def __init__(self, A):
         self._A_orig = np.array(A, dtype='intc')
         self._A = np.array(A, dtype='intc')
-        self._P = []
-        self._Q = []
+        self._Ps = []
+        self._Qs = []
         self._L = []
+        self._P = None
+        self._Q = None
         self._attempt = 0
 
     def run(self):
@@ -20,7 +22,9 @@ class SNF3x3(object):
     def __next__(self):
         self._attempt += 1
         if self._first():
-            raise StopIteration
+            if self._second():
+                self._set_PQ()
+                raise StopIteration
         return self._attempt
 
     def next(self):
@@ -38,15 +42,36 @@ class SNF3x3(object):
     def Q(self):
         return self._Q
 
+    def _set_PQ(self):
+        if np.linalg.det(self._A) < 0:
+            for i in range(3):
+                if self._A[i, i] < 0:
+                    self._flip_sign_row(i)
+            self._Ps += self._L
+            self._L = []
+
+        P = np.eye(3, dtype='intc')
+        for _P in self._Ps:
+            P = np.dot(_P, P)
+        Q = np.eye(3, dtype='intc')
+        for _Q in self._Qs:
+            Q = np.dot(Q, _Q.T)
+
+        if np.linalg.det(P) < 0:
+            P = -P
+            Q = -Q
+
+        self._P = P
+        self._Q = Q
+
     def _first(self):
-        print("attempt %d" % self._attempt)
         self._first_one_loop()
         A = self._A
         if A[1, 0] == 0 and A[2, 0] == 0:
             return True
         elif A[1, 0] % A[0, 0] == 0 and A[2, 0] % A[0, 0] == 0:
             self._first_finalize()
-            self._P += self._L
+            self._Ps += self._L
             self._L = []
             return True
         else:
@@ -54,11 +79,11 @@ class SNF3x3(object):
 
     def _first_one_loop(self):
         self._first_column()
-        self._P += self._L
+        self._Ps += self._L
         self._L = []
         self._A = self._A.T
         self._first_column()
-        self._Q += self._L
+        self._Qs += self._L
         self._L = []
         self._A = self._A.T
 
@@ -74,10 +99,10 @@ class SNF3x3(object):
 
     def _zero_first_column(self, j):
         if self._A[j, 0] < 0:
-            self._flip_row(j)
+            self._flip_sign_row(j)
         A = self._A
         r, s, t = xgcd([A[0, 0], A[j, 0]])
-        self._zero_column(0, j, A[0, 0], A[j, 0], r, s, t)
+        self._set_zero(0, j, A[0, 0], A[j, 0], r, s, t)
 
     def _search_first_pivot(self):
         A = self._A
@@ -85,25 +110,109 @@ class SNF3x3(object):
             if A[i, 0] != 0:
                 return i
 
+    def _first_finalize(self):
+        """Set zeros along the first colomn except for A[0, 0]
+
+        This is possible only when A[1,0] and A[2,0] are dividable by A[0,0].
+
+        """
+
+        A = self._A
+        L = np.eye(3, dtype='intc')
+        L[1, 0] = -A[1, 0] // A[0, 0]
+        L[2, 0] = -A[2, 0] // A[0, 0]
+        self._L.append(L.copy())
+        self._A = np.dot(L, self._A)
+
+    def _second(self):
+        """Find Smith normal form for Right-low 2x2 matrix"""
+
+        self._second_one_loop()
+        A = self._A
+        if A[2, 1] == 0:
+            return True
+        elif A[2, 1] % A[1, 1] == 0:
+            self._second_finalize()
+            self._Ps += self._L
+            self._L = []
+            return True
+        else:
+            return False
+
+    def _second_one_loop(self):
+        self._second_column()
+        self._Ps += self._L
+        self._L = []
+        self._A = self._A.T
+        self._second_column()
+        self._Qs += self._L
+        self._L = []
+        self._A = self._A.T
+
+    def _second_column(self):
+        """Right-low 2x2 matrix
+
+        Assume elements in first row and column are all zero except for A[0,0].
+
+        """
+
+        if self._A[1, 1] == 0 and self._A[2, 1] != 0:
+            self._swap_rows(1, 2)
+
+        if self._A[2, 1] != 0:
+            self._zero_second_column()
+
+    def _zero_second_column(self):
+        if self._A[2, 1] < 0:
+            self._flip_sign_row(2)
+        A = self._A
+        r, s, t = xgcd([A[1, 1], A[2, 1]])
+        self._set_zero(1, 2, A[1, 1], A[2, 1], r, s, t)
+
+    def _second_finalize(self):
+        """Set zero at A[2, 1]
+
+        This is possible only when A[2,1] is dividable by A[1,1].
+
+        """
+
+        A = self._A
+        L = np.eye(3, dtype='intc')
+        L[2, 1] = -A[2, 1] // A[1, 1]
+        self._L.append(L.copy())
+        self._A = np.dot(L, self._A)
+
     def _swap_rows(self, i, j):
+        """Swap i and j rows
+
+        As the side effect, determinant flips.
+
+        """
+
         L = np.eye(3, dtype='intc')
         L[i, i] = 0
         L[j, j] = 0
         L[i, j] = 1
-        L[j, i] = -1
+        L[j, i] = 1
         self._L.append(L.copy())
         self._A = np.dot(L, self._A)
 
-    def _flip_row(self, i):
+    def _flip_sign_row(self, i):
+        """Multiply -1 for all elements in row"""
+
         L = np.eye(3, dtype='intc')
         L[i, i] = -1
         self._L.append(L.copy())
         self._A = np.dot(L, self._A)
 
-    def _zero_column(self, i, j, a, b, r, s, t):
-        """ [ii ij]
-            [ji jj] is a (k,k) minor of original 3x3 matrix.
+    def _set_zero(self, i, j, a, b, r, s, t):
+        """Let A[i, j] be zero based on Bezout's identity
+
+           [ii ij]
+           [ji jj] is a (k,k) minor of original 3x3 matrix.
+
         """
+
         L = np.eye(3, dtype='intc')
         L[i, i] = s
         L[i, j] = t
@@ -112,11 +221,3 @@ class SNF3x3(object):
         self._L.append(L.copy())
         self._A = np.dot(L, self._A)
 
-    def _first_finalize(self):
-        print("finalize")
-        A = self._A
-        L = np.eye(3, dtype='intc')
-        L[1, 0] = -A[1, 0] // A[0, 0]
-        L[2, 0] = -A[2, 0] // A[0, 0]
-        self._L.append(L.copy())
-        self._A = np.dot(L, self._A)

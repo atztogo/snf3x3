@@ -15,24 +15,27 @@ class TestCore(unittest.TestCase):
         pass
 
     def testInstantiate(self):
-        mat = self._get_random_mat()
-        snf = SNF3x3(mat)
-        print()
-        print(snf.A)
-        print(np.linalg.det(snf.A))
-        snf.run()
-        print(snf.A)
-        print(np.linalg.det(snf.A))
-
-        print("P")
-        for P in np.array(snf.P):
-            print(P)
-        print("Q")
-        for Q in np.array(snf.Q):
-            print(Q)
+        for i in range(100):
+            mat = self._get_random_mat()
+            snf = SNF3x3(mat)
+            print()
+            print(snf.A)
+            detA = np.linalg.det(snf.A)
+            print(detA)
+            snf.run()
+    
+            print("PAQ")
+            PAQ = np.dot(snf.P, np.dot(mat, snf.Q))
+            print(PAQ)
+            detPAQ = np.linalg.det(PAQ)
+            print(detPAQ)
+    
+            np.testing.assert_almost_equal(np.linalg.det(snf.P), 1)
+            np.testing.assert_almost_equal(np.linalg.det(snf.Q), 1)
+            np.testing.assert_almost_equal(detPAQ, detA)
 
     def _get_random_mat(self):
-        k = 30
+        k = 15
         mat = np.random.randint(k, size=(3, 3)) - k // 2
         if np.linalg.det(mat) < 0.5:
             mat = self._get_random_mat()
