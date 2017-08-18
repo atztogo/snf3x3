@@ -32,15 +32,15 @@ class SNF3x3(object):
 
     @property
     def A(self):
-        return self._A
+        return self._A.copy()
 
     @property
     def P(self):
-        return self._P
+        return self._P.copy()
 
     @property
     def Q(self):
-        return self._Q
+        return self._Q.copy()
 
     def _set_PQ(self):
         if np.linalg.det(self._A) < 0:
