@@ -1,15 +1,50 @@
 import numpy as np
 from snf3x3.xgcd import xgcd
 
+
 class SNF3x3(object):
+    """Smith normal form for 3x3 matrix
+
+    Input 3x3 interger matrix A is transformed to 3x3 diagonal interger
+    matrix (D) by two 3x3 interger matrices P and Q, which is written as
+
+        D = PAQ
+
+    The algorithm implemented refers
+    https://en.wikipedia.org/wiki/Smith_normal_form.
+
+    Usage
+    -----
+    snf = SNF3x3(int_mat)
+    snf.run()
+
+    Attributes
+    ----------
+    D, P, Q : ndarray
+        These 3x3 interger matrices explained above.
+        shape=(3, 3), dtype='intc'
+
+    """
+
     def __init__(self, A):
-        self._A_orig = np.array(A, dtype='intc')
-        self._A = np.array(A, dtype='intc')
+        """
+
+        Parameters
+        ----------
+        A : array_like
+            3x3 interger matrix.
+            shape=(3, 3)
+
+        """
+
+        self._A_orig = np.array(A, dtype='intc', order='C')
+        self._A = np.array(A, dtype='intc', order='C')
         self._Ps = []
         self._Qs = []
         self._L = []
         self._P = None
         self._Q = None
+        self._D = None
         self._attempt = 0
 
     def run(self):
@@ -32,15 +67,19 @@ class SNF3x3(object):
 
     @property
     def A(self):
-        return self._A.copy()
+        return self._A
+
+    @property
+    def D(self):
+        return self._D
 
     @property
     def P(self):
-        return self._P.copy()
+        return self._P
 
     @property
     def Q(self):
-        return self._Q.copy()
+        return self._Q
 
     def _set_PQ(self):
         if np.linalg.det(self._A) < 0:
@@ -63,6 +102,7 @@ class SNF3x3(object):
 
         self._P = P
         self._Q = Q
+        self._D = self._A.copy()
 
     def _first(self):
         self._first_one_loop()
@@ -106,7 +146,7 @@ class SNF3x3(object):
 
     def _search_first_pivot(self):
         A = self._A
-        for i in range(3): # column index
+        for i in range(3):  # column index
             if A[i, 0] != 0:
                 return i
 
@@ -220,4 +260,3 @@ class SNF3x3(object):
         L[j, j] = a // r
         self._L.append(L.copy())
         self._A = np.dot(L, self._A)
-

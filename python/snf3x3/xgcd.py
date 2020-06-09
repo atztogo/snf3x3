@@ -1,8 +1,10 @@
 import numpy as np
 
+
 def xgcd(vals):
     _xgcd = Xgcd(vals)
     return _xgcd.run()
+
 
 class Xgcd(object):
     def __init__(self, vals):
