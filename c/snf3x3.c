@@ -12,13 +12,14 @@ typedef struct {
   int D[3][3];
 } SNF3x3;
 
-static SNF3x3 core_run(SNF3x3CONST int A[3][3]);
+static SNF3x3 run(SNF3x3CONST int A[3][3]);
 static void extended_gcd(int retvals[3], const int a, const int b);
 static void extended_gcd_step(int vals[6]);
 static int first(SNF3x3 *mats);
-static void first_one_loop(SNF3x3 *mats);
-static void first_column(SNF3x3 *mats);
-static void zero_first_column(SNF3x3 *mats);
+static void first_one_loop(int A[3][3], int P[3][3], int Q[3][3]);
+static void first_column(int A[3][3], int P[3][3]);
+static void zero_first_column(int L[3][3], const int j,
+                              SNF3x3CONST int A[3][3]);
 static int search_first_pivot(SNF3x3CONST int A[3][3]);
 static void first_finalize(SNF3x3 *mats);
 static void second(SNF3x3 *mats);
@@ -26,9 +27,11 @@ static void second_one_loop(SNF3x3 *mats);
 static void second_column(SNF3x3 *mats);
 static void zero_second_column(SNF3x3 *mats);
 static void second_finalize(SNF3x3 *mats);
-static void swap_rows(int A[3][3], const int i, const int j);
+static void swap_rows(int L[3][3], const int i, const int j);
 static void flip_sign_row(SNF3x3 *mats);
-static void set_zero(SNF3x3 *mats);
+static void set_zero(int L[3][3],
+                     const int i, const int j, const int a, const int b,
+                     const int r, const int s, const int t);
 static void transpose(int m[3][3]);
 static void matmul(int m[3][3],
                    SNF3x3CONST int a[3][3],
@@ -37,6 +40,9 @@ static void matmul(int m[3][3],
 static void test_extended_gcd(void);
 static void test_transpose(void);
 static void test_swap_rows(void);
+static void test_zero_first_column(void);
+static void test_first_column(void);
+static void test_first_one_loop(void);
 
 
 int main()
@@ -44,6 +50,9 @@ int main()
   test_extended_gcd();
   test_transpose();
   test_swap_rows();
+  test_zero_first_column();
+  test_first_column();
+  test_first_one_loop();
 }
 
 static void test_extended_gcd(void)
@@ -88,7 +97,7 @@ static void test_transpose(void)
 static void test_swap_rows(void)
 {
   int i, j;
-  int A[3][3];
+  int A[3][3], L[3][3];
 
   printf("Test swap_rows 1 <-> 2\n");
 
@@ -105,7 +114,8 @@ static void test_swap_rows(void)
     printf("\n");
   }
 
-  swap_rows(A, 0, 1);
+  swap_rows(L, 0, 1);
+  matmul(A, L, A);
 
   for (i = 0; i < 3; i++) {
     for (j = 0; j < 3; j++) {
@@ -115,7 +125,122 @@ static void test_swap_rows(void)
   }
 }
 
-static SNF3x3 core_run(SNF3x3CONST int A[3][3])
+static void test_zero_first_column(void)
+{
+  int i, j;
+  int A[3][3], L[3][3];
+
+  printf("Test zero_first_column\n");
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      A[i][j] = i * 3 + j;
+    }
+  }
+  A[0][0] = 1;  /* to avoid det(A) = 0 */
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+
+  zero_first_column(L, 1, A);
+  matmul(A, L, A);
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+
+  zero_first_column(L, 2, A);
+  matmul(A, L, A);
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+static void test_first_column(void)
+{
+  int i, j;
+  int A[3][3], P[3][3];
+
+  printf("Test first_column\n");
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      A[i][j] = i * 3 + j;
+    }
+  }
+  A[0][0] = 1;  /* to avoid det(A) = 0 */
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+
+  first_column(A, P);
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+
+  transpose(A);
+  first_column(A, P);
+  transpose(A);
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+static void test_first_one_loop(void)
+{
+  int i, j;
+  int A[3][3], P[3][3], Q[3][3];
+
+  printf("Test first_one_loop\n");
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      A[i][j] = i * 3 + j;
+    }
+  }
+  A[0][0] = 1;  /* to avoid det(A) = 0 */
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+
+  first_one_loop(A, P, Q);
+
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      printf("%d ", A[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+static SNF3x3 run(SNF3x3CONST int A[3][3])
 {
   int i, j;
   SNF3x3 mats;
@@ -140,7 +265,7 @@ static SNF3x3 core_run(SNF3x3CONST int A[3][3])
  */
 static int first(SNF3x3 *mats)
 {
-  first_one_loop(mats);
+  first_one_loop(mats->A, mats->P, mats->Q);
   if ((mats->A[1][0] == 0) && (mats->A[2][0] == 0)) {
     return 1;
   }
@@ -152,25 +277,51 @@ static int first(SNF3x3 *mats)
   return 0;
 }
 
-static void first_one_loop(SNF3x3 *mats)
+static void first_one_loop(int A[3][3], int P[3][3], int Q[3][3])
 {
-  first_column(mats);
-  transpose(mats->A);
-  first_column(mats);
-  transpose(mats->A);
+  first_column(A, P);
+  transpose(A);
+  first_column(A, Q);
+  transpose(A);
 }
 
-static void first_column(SNF3x3 *mats)
+static void first_column(int A[3][3], int P[3][3])
 {
   int i;
+  int L[3][3];
 
-  if (search_first_pivot(mats->A) > 0) {
-    swap_rows(mats->A, 0, i);
+  i = search_first_pivot(A);
+  if (i > 0) {
+    swap_rows(L, 0, i);
+    matmul(A, L, A);
+    matmul(P, L, P);
   }
+  if (i < 0) {
+    goto err;
+  }
+
+  if (A[1][0] != 0) {
+    zero_first_column(L, 1, A);
+    matmul(A, L, A);
+    matmul(P, L, P);
+  }
+  if (A[2][0] != 0) {
+    zero_first_column(L, 2, A);
+    matmul(A, L, A);
+    matmul(P, L, P);
+  }
+
+err:
+  ;
 }
 
-static void zero_first_column(SNF3x3 *mats)
+static void zero_first_column(int L[3][3], const int j,
+                              SNF3x3CONST int A[3][3])
 {
+  int vals[3];
+
+  extended_gcd(vals, A[0][0], A[j][0]);
+  set_zero(L, 0, j, A[0][0], A[j][0], vals[0], vals[1], vals[2]);
 }
 
 static int search_first_pivot(SNF3x3CONST int A[3][3])
@@ -209,10 +360,9 @@ static void second_finalize(SNF3x3 *mats)
 {
 }
 
-static void swap_rows(int A[3][3], const int r1, const int r2)
+static void swap_rows(int L[3][3], const int r1, const int r2)
 {
   int i, j;
-  int L[3][3];
 
   for (i = 0; i < 3; i++) {
     for (j = 0; j < 3; j++) {
@@ -224,16 +374,29 @@ static void swap_rows(int A[3][3], const int r1, const int r2)
   }
   L[r1][r2] = 1;
   L[r2][r1] = 1;
-
-  matmul(A, L, A);
 }
 
 static void flip_sign_row(SNF3x3 *mats)
 {
 }
 
-static void set_zero(SNF3x3 *mats)
+static void set_zero(int L[3][3],
+                     const int i, const int j, const int a, const int b,
+                     const int r, const int s, const int t)
 {
+  L[0][0] = 1;
+  L[0][1] = 0;
+  L[0][2] = 0;
+  L[1][0] = 0;
+  L[1][1] = 1;
+  L[1][2] = 0;
+  L[2][0] = 0;
+  L[2][1] = 0;
+  L[2][2] = 1;
+  L[i][i] = s;
+  L[i][j] = t;
+  L[j][i] = -b / r;
+  L[j][j] = a / r;
 }
 
 /**
