@@ -1,10 +1,7 @@
 import unittest
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import numpy as np
 from snf3x3.xgcd import xgcd
+
 
 class TestXgcd(unittest.TestCase):
 
@@ -23,6 +20,7 @@ class TestXgcd(unittest.TestCase):
     def _get_random_vals(self):
         vals = np.random.randint(100, size=2) + 1
         return vals
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestXgcd)

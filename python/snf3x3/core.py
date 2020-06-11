@@ -10,9 +10,11 @@ class SNF3x3(object):
 
         D = PAQ
 
-    abs(det(A)) = det(D), det(P) = 1, det(Q) = sgn(det(A)).
-    The algorithm implemented refers
-    https://en.wikipedia.org/wiki/Smith_normal_form.
+    with abs(det(A)) = det(D), det(P) = 1, det(Q) = sgn(det(A)).
+
+    The algorithm is implemented following
+    https://en.wikipedia.org/wiki/Smith_normal_form,
+    but the diagonal elements don't follow the rule of it.
 
     Usage
     -----
