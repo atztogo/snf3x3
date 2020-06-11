@@ -10,6 +10,7 @@ class SNF3x3(object):
 
         D = PAQ
 
+    abs(det(A)) = det(D), det(P) = 1, det(Q) = sgn(det(A)).
     The algorithm implemented refers
     https://en.wikipedia.org/wiki/Smith_normal_form.
 
@@ -82,12 +83,11 @@ class SNF3x3(object):
         return self._Q
 
     def _set_PQ(self):
-        if np.linalg.det(self._A) < 0:
-            for i in range(3):
-                if self._A[i, i] < 0:
-                    self._flip_sign_row(i)
-            self._Ps += self._L
-            self._L = []
+        for i in range(3):
+            if self._A[i, i] < 0:
+                self._flip_sign_row(i)
+        self._Ps += self._L
+        self._L = []
 
         P = np.eye(3, dtype='intc')
         for _P in self._Ps:

@@ -5,8 +5,7 @@
 #define SNF3x3CONST
 #endif
 
-static void extended_gcd(int retvals[3], const int a, const int b);
-static void extended_gcd_step(int vals[6]);
+static void finalize(int A[3][3], int P[3][3], int Q[3][3]);
 static void initialize_PQ(int P[3][3], int Q[3][3]);
 static int first(int A[3][3], int P[3][3], int Q[3][3]);
 static void first_one_loop(int A[3][3], int P[3][3], int Q[3][3]);
@@ -24,10 +23,14 @@ static void swap_rows(int L[3][3], const int i, const int j);
 static void set_zero(int L[3][3],
                      const int i, const int j, const int a, const int b,
                      const int r, const int s, const int t);
+static void extended_gcd(int retvals[3], const int a, const int b);
+static void extended_gcd_step(int vals[6]);
+static void flip_sign_row(int L[3][3], const int i);
 static void transpose(int m[3][3]);
 static void matmul(int m[3][3],
                    SNF3x3CONST int a[3][3],
                    SNF3x3CONST int b[3][3]);
+static int det(SNF3x3CONST int m[3][3]);
 
 
 /* static void test_set_A(int A[3][3]);
@@ -43,7 +46,7 @@ static void matmul(int m[3][3],
  * static void test_second_one_loop(void);
  * static void test_second(void); */
 
-void snf3x3(int A[3][3], int P[3][3], int Q[3][3])
+int snf3x3(int A[3][3], int P[3][3], int Q[3][3])
 {
   int i;
   initialize_PQ(P, Q);
@@ -51,7 +54,39 @@ void snf3x3(int A[3][3], int P[3][3], int Q[3][3])
   for (i = 0; i < 100; i++) {
     if (first(A, P, Q)) {
       if (second(A, P, Q)) {
-        transpose(Q);
+        finalize(A, P, Q);
+        goto succeeded;
+      }
+    }
+  }
+  return 0;
+
+succeeded:
+  return 1;
+}
+
+static void finalize(int A[3][3], int P[3][3], int Q[3][3])
+{
+  int i, j;
+  int L[3][3];
+
+  transpose(Q);
+
+  for (i = 0; i < 3; i++) {
+    if (A[i][i] < 0) {
+      flip_sign_row(L, i);
+      matmul(A, L, A);
+      matmul(P, L, P);
+    }
+  }
+
+  /* det(A) > 0 -> det(P) = 1, det(Q) = 1 */
+  /* det(A) < 0 -> det(P) = 1, det(Q) = -1 */
+  if (det(P) < 0) {
+    for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+        P[i][j] = -P[i][j];
+        Q[i][j] = -Q[i][j];
       }
     }
   }
@@ -326,6 +361,20 @@ static void extended_gcd_step(int vals[6])
   vals[5] = t2;
 }
 
+static void flip_sign_row(int L[3][3], const int i)
+{
+  L[0][0] = 1;
+  L[0][1] = 0;
+  L[0][2] = 0;
+  L[1][0] = 0;
+  L[1][1] = 1;
+  L[1][2] = 0;
+  L[2][0] = 0;
+  L[2][1] = 0;
+  L[2][2] = 1;
+  L[i][i] = -1;
+}
+
 /**
  * Matrix operation utils
  */
@@ -360,6 +409,13 @@ static void matmul(int m[3][3],
       m[i][j] = c[i][j];
     }
   }
+}
+
+static int det(SNF3x3CONST int m[3][3])
+{
+  return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+    + m[0][1] * (m[1][2] * m[2][0] - m[1][0] * m[2][2])
+    + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
 }
 
 
