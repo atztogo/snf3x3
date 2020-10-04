@@ -54,6 +54,9 @@ class SNF3x3(object):
         for i in self:
             pass
 
+        A = np.dot(self._P, np.dot(self._A_orig, self._Q))
+        assert (A == self._A).all()
+
     def __iter__(self):
         return self
 
@@ -61,6 +64,7 @@ class SNF3x3(object):
         self._attempt += 1
         if self._first():
             if self._second():
+                self._finalize()
                 self._set_PQ()
                 raise StopIteration
         return self._attempt
@@ -83,28 +87,6 @@ class SNF3x3(object):
     @property
     def Q(self):
         return self._Q
-
-    def _set_PQ(self):
-        for i in range(3):
-            if self._A[i, i] < 0:
-                self._flip_sign_row(i)
-        self._Ps += self._L
-        self._L = []
-
-        P = np.eye(3, dtype='intc')
-        for _P in self._Ps:
-            P = np.dot(_P, P)
-        Q = np.eye(3, dtype='intc')
-        for _Q in self._Qs:
-            Q = np.dot(Q, _Q.T)
-
-        if np.linalg.det(P) < 0:
-            P = -P
-            Q = -Q
-
-        self._P = P
-        self._Q = Q
-        self._D = self._A.copy()
 
     def _first(self):
         self._first_one_loop()
@@ -142,8 +124,6 @@ class SNF3x3(object):
             self._zero_first_column(2)
 
     def _zero_first_column(self, j):
-        # if self._A[j, 0] < 0:
-        #     self._flip_sign_row(j)
         A = self._A
         r, s, t = xgcd([A[0, 0], A[j, 0]])
         self._set_zero(0, j, A[0, 0], A[j, 0], r, s, t)
@@ -208,8 +188,6 @@ class SNF3x3(object):
             self._zero_second_column()
 
     def _zero_second_column(self):
-        # if self._A[2, 1] < 0:
-        #     self._flip_sign_row(2)
         A = self._A
         r, s, t = xgcd([A[1, 1], A[2, 1]])
         self._set_zero(1, 2, A[1, 1], A[2, 1], r, s, t)
@@ -226,6 +204,54 @@ class SNF3x3(object):
         L[2, 1] = -A[2, 1] // A[1, 1]
         self._L.append(L.copy())
         self._A = np.dot(L, self._A)
+
+    def _finalize(self):
+        for i in range(3):
+            if self._A[i, i] < 0:
+                self._flip_sign_row(i)
+        self._finalize_sort()
+        self._finalize_disturb(0, 1)
+        self._first()
+        self._finalize_sort()
+        self._finalize_disturb(1, 2)
+        self._second()
+
+    def _finalize_sort(self):
+        A = self._A
+        if A[0, 0] > A[1, 1]:
+            self._swap_diag_elems(0, 1)
+        if A[1, 1] > A[2, 2]:
+            self._swap_diag_elems(1, 2)
+        if A[0, 0] > A[1, 1]:
+            self._swap_diag_elems(0, 1)
+
+    def _finalize_disturb(self, i, j):
+        A = self._A
+        if A[j, j] % A[i, i] != 0:
+            self._A = self._A.T
+            self._disturb_rows(i, j)
+            self._A = self._A.T
+            self._Qs += self._L
+            self._L = []
+
+    def _disturb_rows(self, i, j):
+        L = np.eye(3, dtype='intc')
+        L[i, i] = 1
+        L[i, j] = 1
+        L[j, i] = 0
+        L[j, j] = 1
+        self._L.append(L.copy())
+        self._A = np.dot(L, self._A)
+
+    def _swap_diag_elems(self, i, j):
+        self._swap_rows(i, j)
+        self._A = self._A.T
+        self._Ps += self._L
+        self._L = []
+        self._swap_rows(i, j)
+        self._A = self._A.T
+        self._Qs += self._L
+        self._L = []
 
     def _swap_rows(self, i, j):
         """Swap i and j rows
@@ -265,3 +291,22 @@ class SNF3x3(object):
         L[j, j] = a // r
         self._L.append(L.copy())
         self._A = np.dot(L, self._A)
+
+    def _set_PQ(self):
+        self._Ps += self._L
+        self._L = []
+
+        P = np.eye(3, dtype='intc')
+        for _P in self._Ps:
+            P = np.dot(_P, P)
+        Q = np.eye(3, dtype='intc')
+        for _Q in self._Qs:
+            Q = np.dot(Q, _Q.T)
+
+        if np.linalg.det(P) < 0:
+            P = -P
+            Q = -Q
+
+        self._P = P
+        self._Q = Q
+        self._D = self._A.copy()
