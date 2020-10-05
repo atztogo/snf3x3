@@ -5,7 +5,6 @@
 #define SNF3x3CONST
 #endif
 
-static void finalize(int A[3][3], int P[3][3], int Q[3][3]);
 static void initialize_PQ(int P[3][3], int Q[3][3]);
 static int first(int A[3][3], int P[3][3], int Q[3][3]);
 static void first_one_loop(int A[3][3], int P[3][3], int Q[3][3]);
@@ -19,6 +18,13 @@ static void second_one_loop(int A[3][3], int P[3][3], int Q[3][3]);
 static void second_column(int A[3][3], int P[3][3]);
 static void zero_second_column(int L[3][3], SNF3x3CONST int A[3][3]);
 static void second_finalize(int L[3][3], SNF3x3CONST int A[3][3]);
+static void finalize(int A[3][3], int P[3][3], int Q[3][3]);
+static void finalize_sort(int A[3][3], int P[3][3], int Q[3][3]);
+static void finalize_disturb(int A[3][3], int Q[3][3], const int i, const int j);
+static void disturb_rows(int L[3][3], const int i, const int j);
+static void swap_diag_elems(int A[3][3], int P[3][3], int Q[3][3], const int i, const int j);
+static void make_diagA_positive(int A[3][3], int P[3][3]);
+static void flip_PQ(int P[3][3], int Q[3][3]);
 static void swap_rows(int L[3][3], const int i, const int j);
 static void set_zero(int L[3][3],
                      const int i, const int j, const int a, const int b,
@@ -55,6 +61,7 @@ int snf3x3(int A[3][3], int P[3][3], int Q[3][3])
     if (first(A, P, Q)) {
       if (second(A, P, Q)) {
         finalize(A, P, Q);
+        transpose(Q);
         goto succeeded;
       }
     }
@@ -63,33 +70,6 @@ int snf3x3(int A[3][3], int P[3][3], int Q[3][3])
 
 succeeded:
   return 1;
-}
-
-static void finalize(int A[3][3], int P[3][3], int Q[3][3])
-{
-  int i, j;
-  int L[3][3];
-
-  transpose(Q);
-
-  for (i = 0; i < 3; i++) {
-    if (A[i][i] < 0) {
-      flip_sign_row(L, i);
-      matmul(A, L, A);
-      matmul(P, L, P);
-    }
-  }
-
-  /* det(A) > 0 -> det(P) = 1, det(Q) = 1 */
-  /* det(A) < 0 -> det(P) = 1, det(Q) = -1 */
-  if (det(P) < 0) {
-    for (i = 0; i < 3; i++) {
-      for (j = 0; j < 3; j++) {
-        P[i][j] = -P[i][j];
-        Q[i][j] = -Q[i][j];
-      }
-    }
-  }
 }
 
 static void initialize_PQ(int P[3][3], int Q[3][3])
@@ -270,18 +250,117 @@ static void second_finalize(int L[3][3], SNF3x3CONST int A[3][3])
   L[2][2] = 1;
 }
 
-static void swap_rows(int L[3][3], const int r1, const int r2)
+static void finalize(int A[3][3], int P[3][3], int Q[3][3])
+{
+  make_diagA_positive(A, P);
+
+  finalize_sort(A, P, Q);
+  finalize_disturb(A, Q, 0, 1);
+  first(A, P, Q);
+  finalize_sort(A, P, Q);
+  finalize_disturb(A, Q, 1, 2);
+  second(A, P, Q);
+  flip_PQ(P, Q);
+}
+
+static void finalize_sort(int A[3][3], int P[3][3], int Q[3][3])
+{
+  if (A[0][0] > A[1][1]) {
+    swap_diag_elems(A, P, Q, 0, 1);
+  }
+  if (A[1][1] > A[2][2]) {
+    swap_diag_elems(A, P, Q, 1, 2);
+  }
+  if (A[0][0] > A[1][1]) {
+    swap_diag_elems(A, P, Q, 0, 1);
+  }
+}
+
+static void finalize_disturb(int A[3][3], int Q[3][3], const int i, const int j)
+{
+  int L[3][3];
+
+  if (A[j][j] % A[i][i] != 0) {
+    transpose(A);
+    disturb_rows(L, i, j);
+    matmul(A, L, A);
+    matmul(Q, L, Q);
+    transpose(A);
+  }
+}
+
+static void disturb_rows(int L[3][3], const int i, const int j)
+{
+  L[0][0] = 1;
+  L[0][1] = 0;
+  L[0][2] = 0;
+  L[1][0] = 0;
+  L[1][1] = 1;
+  L[1][2] = 0;
+  L[2][0] = 0;
+  L[2][1] = 0;
+  L[2][2] = 1;
+  L[i][i] = 1;
+  L[i][j] = 1;
+  L[j][i] = 0;
+  L[j][j] = 1;
+}
+
+static void swap_diag_elems(int A[3][3], int P[3][3], int Q[3][3], const int i, const int j)
+{
+  int L[3][3];
+
+  swap_rows(L, i, j);
+  matmul(A, L, A);
+  matmul(P, L, P);
+  transpose(A);
+  swap_rows(L, i, j);
+  matmul(A, L, A);
+  matmul(Q, L, Q);
+  transpose(A);
+}
+
+static void make_diagA_positive(int A[3][3], int P[3][3])
+{
+  int i;
+  int L[3][3];
+
+  for (i = 0; i < 3; i++) {
+    if (A[i][i] < 0) {
+      flip_sign_row(L, i);
+      matmul(A, L, A);
+      matmul(P, L, P);
+    }
+  }
+}
+
+static void flip_PQ(int P[3][3], int Q[3][3])
 {
   int i, j;
 
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++) {
-      L[i][j] = 0;
-    }
-    if ((i != r1) && (i != r2)) {
-      L[i][i] = 1;
+  if (det(P) < 0) {
+    for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+        P[i][j] *= -1;
+        Q[i][j] *= -1;
+      }
     }
   }
+}
+
+static void swap_rows(int L[3][3], const int r1, const int r2)
+{
+  L[0][0] = 1;
+  L[0][1] = 0;
+  L[0][2] = 0;
+  L[1][0] = 0;
+  L[1][1] = 1;
+  L[1][2] = 0;
+  L[2][0] = 0;
+  L[2][1] = 0;
+  L[2][2] = 1;
+  L[r1][r1] = 0;
+  L[r2][r2] = 0;
   L[r1][r2] = 1;
   L[r2][r1] = 1;
 }
