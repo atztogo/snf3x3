@@ -104,11 +104,11 @@ class SNF3x3(object):
         self._first_column()
         self._Ps += self._L
         self._L = []
-        self._A = self._A.T
+        self._A[:] = self._A.T
         self._first_column()
         self._Qs += self._L
         self._L = []
-        self._A = self._A.T
+        self._A[:] = self._A.T
 
     def _first_column(self):
         i = self._search_first_pivot()
@@ -128,9 +128,8 @@ class SNF3x3(object):
         self._set_zero(0, j, A[0, 0], A[j, 0], r, s, t)
 
     def _search_first_pivot(self):
-        A = self._A
         for i in range(3):  # column index
-            if A[i, 0] != 0:
+            if self._A[i, 0] != 0:
                 return i
         return -1
 
@@ -146,7 +145,7 @@ class SNF3x3(object):
         L[1, 0] = -A[1, 0] // A[0, 0]
         L[2, 0] = -A[2, 0] // A[0, 0]
         self._L.append(L.copy())
-        self._A = np.dot(L, self._A)
+        self._A[:] = np.dot(L, self._A)
 
     def _second(self):
         """Find Smith normal form for Right-low 2x2 matrix"""
@@ -167,11 +166,11 @@ class SNF3x3(object):
         self._second_column()
         self._Ps += self._L
         self._L = []
-        self._A = self._A.T
+        self._A[:] = self._A.T
         self._second_column()
         self._Qs += self._L
         self._L = []
-        self._A = self._A.T
+        self._A[:] = self._A.T
 
     def _second_column(self):
         """Right-low 2x2 matrix
@@ -202,7 +201,7 @@ class SNF3x3(object):
         L = np.eye(3, dtype='intc')
         L[2, 1] = -A[2, 1] // A[1, 1]
         self._L.append(L.copy())
-        self._A = np.dot(L, self._A)
+        self._A[:] = np.dot(L, self._A)
 
     def _finalize(self):
         for i in range(3):
@@ -227,13 +226,12 @@ class SNF3x3(object):
             self._swap_diag_elems(0, 1)
 
     def _finalize_disturb(self, i, j):
-        A = self._A
-        if A[j, j] % A[i, i] != 0:
-            self._A = self._A.T
+        if self._A[j, j] % self._A[i, i] != 0:
+            self._A[:] = self._A.T
             self._disturb_rows(i, j)
             self._Qs += self._L
             self._L = []
-            self._A = self._A.T
+            self._A[:] = self._A.T
 
     def _disturb_rows(self, i, j):
         L = np.eye(3, dtype='intc')
@@ -242,17 +240,17 @@ class SNF3x3(object):
         L[j, i] = 0
         L[j, j] = 1
         self._L.append(L.copy())
-        self._A = np.dot(L, self._A)
+        self._A[:] = np.dot(L, self._A)
 
     def _swap_diag_elems(self, i, j):
         self._swap_rows(i, j)
         self._Ps += self._L
         self._L = []
-        self._A = self._A.T
+        self._A[:] = self._A.T
         self._swap_rows(i, j)
         self._Qs += self._L
         self._L = []
-        self._A = self._A.T
+        self._A[:] = self._A.T
 
     def _swap_rows(self, i, j):
         """Swap i and j rows
@@ -267,7 +265,7 @@ class SNF3x3(object):
         L[i, j] = 1
         L[j, i] = 1
         self._L.append(L.copy())
-        self._A = np.dot(L, self._A)
+        self._A[:] = np.dot(L, self._A)
 
     def _flip_sign_row(self, i):
         """Multiply -1 for all elements in row"""
@@ -275,7 +273,7 @@ class SNF3x3(object):
         L = np.eye(3, dtype='intc')
         L[i, i] = -1
         self._L.append(L.copy())
-        self._A = np.dot(L, self._A)
+        self._A[:] = np.dot(L, self._A)
 
     def _set_zero(self, i, j, a, b, r, s, t):
         """Let A[i, j] be zero based on Bezout's identity
@@ -291,7 +289,7 @@ class SNF3x3(object):
         L[j, i] = -b // r
         L[j, j] = a // r
         self._L.append(L.copy())
-        self._A = np.dot(L, self._A)
+        self._A[:] = np.dot(L, self._A)
 
     def _set_PQ(self):
         P = np.eye(3, dtype='intc')
