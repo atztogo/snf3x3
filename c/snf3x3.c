@@ -5,42 +5,42 @@
 #define SNF3x3CONST
 #endif
 
-static void initialize_PQ(int P[3][3], int Q[3][3]);
-static int first(int A[3][3], int P[3][3], int Q[3][3]);
-static void first_one_loop(int A[3][3], int P[3][3], int Q[3][3]);
-static void first_column(int A[3][3], int P[3][3]);
-static void zero_first_column(int L[3][3], const int j,
-                              SNF3x3CONST int A[3][3]);
-static int search_first_pivot(SNF3x3CONST int A[3][3]);
-static void first_finalize(int L[3][3], SNF3x3CONST int A[3][3]);
-static int second(int A[3][3], int P[3][3], int Q[3][3]);
-static void second_one_loop(int A[3][3], int P[3][3], int Q[3][3]);
-static void second_column(int A[3][3], int P[3][3]);
-static void zero_second_column(int L[3][3], SNF3x3CONST int A[3][3]);
-static void second_finalize(int L[3][3], SNF3x3CONST int A[3][3]);
-static void finalize(int A[3][3], int P[3][3], int Q[3][3]);
-static void finalize_sort(int A[3][3], int P[3][3], int Q[3][3]);
-static void finalize_disturb(int A[3][3], int Q[3][3], const int i, const int j);
-static void disturb_rows(int L[3][3], const int i, const int j);
-static void swap_diag_elems(int A[3][3], int P[3][3], int Q[3][3], const int i, const int j);
-static void make_diagA_positive(int A[3][3], int P[3][3]);
-static void flip_PQ(int P[3][3], int Q[3][3]);
-static void swap_rows(int L[3][3], const int i, const int j);
-static void set_zero(int L[3][3],
-                     const int i, const int j, const int a, const int b,
-                     const int r, const int s, const int t);
-static void extended_gcd(int retvals[3], const int a, const int b);
-static void extended_gcd_step(int vals[6]);
-static void flip_sign_row(int L[3][3], const int i);
-static void transpose(int m[3][3]);
-static void matmul(int m[3][3],
-                   SNF3x3CONST int a[3][3],
-                   SNF3x3CONST int b[3][3]);
-static int det(SNF3x3CONST int m[3][3]);
+static void initialize_PQ(long P[3][3], long Q[3][3]);
+static int first(long A[3][3], long P[3][3], long Q[3][3]);
+static void first_one_loop(long A[3][3], long P[3][3], long Q[3][3]);
+static void first_column(long A[3][3], long P[3][3]);
+static void zero_first_column(long L[3][3], const int j,
+                              SNF3x3CONST long A[3][3]);
+static int search_first_pivot(SNF3x3CONST long A[3][3]);
+static void first_finalize(long L[3][3], SNF3x3CONST long A[3][3]);
+static int second(long A[3][3], long P[3][3], long Q[3][3]);
+static void second_one_loop(long A[3][3], long P[3][3], long Q[3][3]);
+static void second_column(long A[3][3], long P[3][3]);
+static void zero_second_column(long L[3][3], SNF3x3CONST long A[3][3]);
+static void second_finalize(long L[3][3], SNF3x3CONST long A[3][3]);
+static void finalize(long A[3][3], long P[3][3], long Q[3][3]);
+static void finalize_sort(long A[3][3], long P[3][3], long Q[3][3]);
+static void finalize_disturb(long A[3][3], long Q[3][3], const int i, const int j);
+static void disturb_rows(long L[3][3], const int i, const int j);
+static void swap_diag_elems(long A[3][3], long P[3][3], long Q[3][3], const int i, const int j);
+static void make_diagA_positive(long A[3][3], long P[3][3]);
+static void flip_PQ(long P[3][3], long Q[3][3]);
+static void swap_rows(long L[3][3], const int i, const int j);
+static void set_zero(long L[3][3],
+                     const int i, const int j, const long a, const long b,
+                     const long r, const long s, const long t);
+static void extended_gcd(long retvals[3], const long a, const long b);
+static void extended_gcd_step(long vals[6]);
+static void flip_sign_row(long L[3][3], const int i);
+static void transpose(long m[3][3]);
+static void matmul(long m[3][3],
+                   SNF3x3CONST long a[3][3],
+                   SNF3x3CONST long b[3][3]);
+static long det(SNF3x3CONST long m[3][3]);
 
 
-/* static void test_set_A(int A[3][3]);
- * static void test_show_A(SNF3x3CONST int A[3][3]);
+/* static void test_set_A(long A[3][3]);
+ * static void test_show_A(SNF3x3CONST long A[3][3]);
  * static void test_extended_gcd(void);
  * static void test_transpose(void);
  * static void test_swap_rows(void);
@@ -52,7 +52,7 @@ static int det(SNF3x3CONST int m[3][3]);
  * static void test_second_one_loop(void);
  * static void test_second(void); */
 
-int snf3x3(int A[3][3], int P[3][3], int Q[3][3])
+int snf3x3(long A[3][3], long P[3][3], long Q[3][3])
 {
   int i;
   initialize_PQ(P, Q);
@@ -72,7 +72,7 @@ succeeded:
   return 1;
 }
 
-static void initialize_PQ(int P[3][3], int Q[3][3])
+static void initialize_PQ(long P[3][3], long Q[3][3])
 {
   int i, j;
 
@@ -89,9 +89,9 @@ static void initialize_PQ(int P[3][3], int Q[3][3])
   }
 }
 
-static int first(int A[3][3], int P[3][3], int Q[3][3])
+static int first(long A[3][3], long P[3][3], long Q[3][3])
 {
-  int L[3][3];
+  long L[3][3];
 
   first_one_loop(A, P, Q);
 
@@ -112,7 +112,7 @@ static int first(int A[3][3], int P[3][3], int Q[3][3])
   return 0;
 }
 
-static void first_one_loop(int A[3][3], int P[3][3], int Q[3][3])
+static void first_one_loop(long A[3][3], long P[3][3], long Q[3][3])
 {
   first_column(A, P);
   transpose(A);
@@ -120,10 +120,10 @@ static void first_one_loop(int A[3][3], int P[3][3], int Q[3][3])
   transpose(A);
 }
 
-static void first_column(int A[3][3], int P[3][3])
+static void first_column(long A[3][3], long P[3][3])
 {
   int i;
-  int L[3][3];
+  long L[3][3];
 
   i = search_first_pivot(A);
   if (i > 0) {
@@ -150,16 +150,16 @@ err:
   ;
 }
 
-static void zero_first_column(int L[3][3], const int j,
-                              SNF3x3CONST int A[3][3])
+static void zero_first_column(long L[3][3], const int j,
+                              SNF3x3CONST long A[3][3])
 {
-  int vals[3];
+  long vals[3];
 
   extended_gcd(vals, A[0][0], A[j][0]);
   set_zero(L, 0, j, A[0][0], A[j][0], vals[0], vals[1], vals[2]);
 }
 
-static int search_first_pivot(SNF3x3CONST int A[3][3])
+static int search_first_pivot(SNF3x3CONST long A[3][3])
 {
   int i;
 
@@ -171,7 +171,7 @@ static int search_first_pivot(SNF3x3CONST int A[3][3])
   return -1;
 }
 
-static void first_finalize(int L[3][3], SNF3x3CONST int A[3][3])
+static void first_finalize(long L[3][3], SNF3x3CONST long A[3][3])
 {
   L[0][0] = 1;
   L[0][1] = 0;
@@ -184,9 +184,9 @@ static void first_finalize(int L[3][3], SNF3x3CONST int A[3][3])
   L[2][2] = 1;
 }
 
-static int second(int A[3][3], int P[3][3], int Q[3][3])
+static int second(long A[3][3], long P[3][3], long Q[3][3])
 {
-  int L[3][3];
+  long L[3][3];
 
   second_one_loop(A, P, Q);
 
@@ -204,7 +204,7 @@ static int second(int A[3][3], int P[3][3], int Q[3][3])
   return 0;
 }
 
-static void second_one_loop(int A[3][3], int P[3][3], int Q[3][3])
+static void second_one_loop(long A[3][3], long P[3][3], long Q[3][3])
 {
   second_column(A, P);
   transpose(A);
@@ -212,9 +212,9 @@ static void second_one_loop(int A[3][3], int P[3][3], int Q[3][3])
   transpose(A);
 }
 
-static void second_column(int A[3][3], int P[3][3])
+static void second_column(long A[3][3], long P[3][3])
 {
-  int L[3][3];
+  long L[3][3];
 
   if ((A[1][1] == 0) && (A[2][1] != 0)) {
     swap_rows(L, 1, 2);
@@ -229,15 +229,15 @@ static void second_column(int A[3][3], int P[3][3])
   }
 }
 
-static void zero_second_column(int L[3][3], SNF3x3CONST int A[3][3])
+static void zero_second_column(long L[3][3], SNF3x3CONST long A[3][3])
 {
-  int vals[3];
+  long vals[3];
 
   extended_gcd(vals, A[1][1], A[2][1]);
   set_zero(L, 1, 2, A[1][1], A[2][1], vals[0], vals[1], vals[2]);
 }
 
-static void second_finalize(int L[3][3], SNF3x3CONST int A[3][3])
+static void second_finalize(long L[3][3], SNF3x3CONST long A[3][3])
 {
   L[0][0] = 1;
   L[0][1] = 0;
@@ -250,7 +250,7 @@ static void second_finalize(int L[3][3], SNF3x3CONST int A[3][3])
   L[2][2] = 1;
 }
 
-static void finalize(int A[3][3], int P[3][3], int Q[3][3])
+static void finalize(long A[3][3], long P[3][3], long Q[3][3])
 {
   make_diagA_positive(A, P);
 
@@ -263,7 +263,7 @@ static void finalize(int A[3][3], int P[3][3], int Q[3][3])
   flip_PQ(P, Q);
 }
 
-static void finalize_sort(int A[3][3], int P[3][3], int Q[3][3])
+static void finalize_sort(long A[3][3], long P[3][3], long Q[3][3])
 {
   if (A[0][0] > A[1][1]) {
     swap_diag_elems(A, P, Q, 0, 1);
@@ -276,9 +276,9 @@ static void finalize_sort(int A[3][3], int P[3][3], int Q[3][3])
   }
 }
 
-static void finalize_disturb(int A[3][3], int Q[3][3], const int i, const int j)
+static void finalize_disturb(long A[3][3], long Q[3][3], const int i, const int j)
 {
-  int L[3][3];
+  long L[3][3];
 
   if (A[j][j] % A[i][i] != 0) {
     transpose(A);
@@ -289,7 +289,7 @@ static void finalize_disturb(int A[3][3], int Q[3][3], const int i, const int j)
   }
 }
 
-static void disturb_rows(int L[3][3], const int i, const int j)
+static void disturb_rows(long L[3][3], const int i, const int j)
 {
   L[0][0] = 1;
   L[0][1] = 0;
@@ -306,9 +306,9 @@ static void disturb_rows(int L[3][3], const int i, const int j)
   L[j][j] = 1;
 }
 
-static void swap_diag_elems(int A[3][3], int P[3][3], int Q[3][3], const int i, const int j)
+static void swap_diag_elems(long A[3][3], long P[3][3], long Q[3][3], const int i, const int j)
 {
-  int L[3][3];
+  long L[3][3];
 
   swap_rows(L, i, j);
   matmul(A, L, A);
@@ -320,10 +320,10 @@ static void swap_diag_elems(int A[3][3], int P[3][3], int Q[3][3], const int i, 
   transpose(A);
 }
 
-static void make_diagA_positive(int A[3][3], int P[3][3])
+static void make_diagA_positive(long A[3][3], long P[3][3])
 {
   int i;
-  int L[3][3];
+  long L[3][3];
 
   for (i = 0; i < 3; i++) {
     if (A[i][i] < 0) {
@@ -334,7 +334,7 @@ static void make_diagA_positive(int A[3][3], int P[3][3])
   }
 }
 
-static void flip_PQ(int P[3][3], int Q[3][3])
+static void flip_PQ(long P[3][3], long Q[3][3])
 {
   int i, j;
 
@@ -348,7 +348,7 @@ static void flip_PQ(int P[3][3], int Q[3][3])
   }
 }
 
-static void swap_rows(int L[3][3], const int r1, const int r2)
+static void swap_rows(long L[3][3], const int r1, const int r2)
 {
   L[0][0] = 1;
   L[0][1] = 0;
@@ -365,9 +365,9 @@ static void swap_rows(int L[3][3], const int r1, const int r2)
   L[r2][r1] = 1;
 }
 
-static void set_zero(int L[3][3],
-                     const int i, const int j, const int a, const int b,
-                     const int r, const int s, const int t)
+static void set_zero(long L[3][3],
+                     const int i, const int j, const long a, const long b,
+                     const long r, const long s, const long t)
 {
   L[0][0] = 1;
   L[0][1] = 0;
@@ -388,10 +388,10 @@ static void set_zero(int L[3][3],
  * Extended Euclidean algorithm
  * See https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
  */
-static void extended_gcd(int retvals[3], const int a, const int b)
+static void extended_gcd(long retvals[3], const long a, const long b)
 {
   int i;
-  int vals[6];
+  long vals[6];
 
   vals[0] = a;  /* r0 */
   vals[1] = b;  /* r1 */
@@ -414,9 +414,9 @@ static void extended_gcd(int retvals[3], const int a, const int b)
   assert(vals[0] == a * vals[2] + b * vals[4]);
 }
 
-static void extended_gcd_step(int vals[6])
+static void extended_gcd_step(long vals[6])
 {
-  int q, r2, s2, t2;
+  long q, r2, s2, t2;
 
   q = vals[0] / vals[1];
   r2 = vals[0] % vals[1];
@@ -440,7 +440,7 @@ static void extended_gcd_step(int vals[6])
   vals[5] = t2;
 }
 
-static void flip_sign_row(int L[3][3], const int i)
+static void flip_sign_row(long L[3][3], const int i)
 {
   L[0][0] = 1;
   L[0][1] = 0;
@@ -457,9 +457,10 @@ static void flip_sign_row(int L[3][3], const int i)
 /**
  * Matrix operation utils
  */
-static void transpose(int m[3][3])
+static void transpose(long m[3][3])
 {
-  int tmp, i, j;
+  long tmp;
+  int i, j;
 
   for (i = 0; i < 3; i++) {
     for (j = i; j < 3; j++) {
@@ -470,12 +471,12 @@ static void transpose(int m[3][3])
   }
 }
 
-static void matmul(int m[3][3],
-                   SNF3x3CONST int a[3][3],
-                   SNF3x3CONST int b[3][3])
+static void matmul(long m[3][3],
+                   SNF3x3CONST long a[3][3],
+                   SNF3x3CONST long b[3][3])
 {
   int i, j;
-  int c[3][3];
+  long c[3][3];
 
   for (i = 0; i < 3; i++) {
     for (j = 0; j < 3; j++) {
@@ -490,7 +491,7 @@ static void matmul(int m[3][3],
   }
 }
 
-static int det(SNF3x3CONST int m[3][3])
+static long det(SNF3x3CONST long m[3][3])
 {
   return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
     + m[0][1] * (m[1][2] * m[2][0] - m[1][0] * m[2][2])
@@ -512,7 +513,7 @@ static int det(SNF3x3CONST int m[3][3])
  *   test_second();
  * }
  *
- * static void test_set_A(int A[3][3])
+ * static void test_set_A(long A[3][3])
  * {
  *   int i, j;
  *
@@ -524,7 +525,7 @@ static int det(SNF3x3CONST int m[3][3])
  *   A[0][0] = 1;  /\* to avoid det(A) = 0 *\/
  * }
  *
- * static void test_show_A(SNF3x3CONST int A[3][3])
+ * static void test_show_A(SNF3x3CONST long A[3][3])
  * {
  *   int i, j;
  *
@@ -548,7 +549,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_transpose(void)
  * {
  *   int i, j;
- *   int A[3][3];
+ *   long A[3][3];
  *
  *   printf("Test transpose\n");
  *
@@ -561,7 +562,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_swap_rows(void)
  * {
  *   int i, j;
- *   int A[3][3], L[3][3];
+ *   long A[3][3], L[3][3];
  *
  *   printf("Test swap_rows 1 <-> 2\n");
  *
@@ -575,7 +576,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_zero_first_column(void)
  * {
  *   int i, j;
- *   int A[3][3], L[3][3];
+ *   long A[3][3], L[3][3];
  *
  *   printf("Test zero_first_column\n");
  *
@@ -592,7 +593,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_first_column(void)
  * {
  *   int i, j;
- *   int A[3][3], P[3][3];
+ *   long A[3][3], P[3][3];
  *
  *   printf("Test first_column\n");
  *
@@ -609,7 +610,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_first_one_loop(void)
  * {
  *   int i, j;
- *   int A[3][3], P[3][3], Q[3][3];
+ *   long A[3][3], P[3][3], Q[3][3];
  *
  *   printf("Test first_one_loop\n");
  *
@@ -622,7 +623,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_first(void)
  * {
  *   int i, j;
- *   int A[3][3], P[3][3], Q[3][3];
+ *   long A[3][3], P[3][3], Q[3][3];
  *
  *   printf("Test first\n");
  *
@@ -635,7 +636,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_second_column(void)
  * {
  *   int i, j;
- *   int A[3][3], P[3][3], Q[3][3];
+ *   long A[3][3], P[3][3], Q[3][3];
  *
  *   printf("Test second_column\n");
  *
@@ -650,7 +651,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_second_one_loop(void)
  * {
  *   int i, j;
- *   int A[3][3], P[3][3], Q[3][3];
+ *   long A[3][3], P[3][3], Q[3][3];
  *
  *   printf("Test second_one_loop\n");
  *
@@ -665,7 +666,7 @@ static int det(SNF3x3CONST int m[3][3])
  * static void test_second(void)
  * {
  *   int i, j;
- *   int A[3][3], P[3][3], Q[3][3];
+ *   long A[3][3], P[3][3], Q[3][3];
  *
  *   printf("Test second\n");
  *

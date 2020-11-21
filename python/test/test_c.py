@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from snf3x3._snf3x3 import snf3x3
+from snf3x3._snf3x3 import snf3x3 as c_snf3x3
 from snf3x3 import SNF3x3
 
 
@@ -18,7 +18,7 @@ class TestC(unittest.TestCase):
         pass
 
     def _test_snf3x3(self, m):
-        A = np.array(m, dtype='intc', order='C')
+        A = np.array(m, dtype='int_', order='C')
         P = np.zeros_like(A)
         Q = np.zeros_like(A)
 
@@ -27,7 +27,7 @@ class TestC(unittest.TestCase):
 
         _A = np.zeros_like(A)  # Final result
         _A[:] = A
-        snf3x3(_A, P, Q)
+        c_snf3x3(_A, P, Q)
 
         if self.verbose:
             print("Python version")

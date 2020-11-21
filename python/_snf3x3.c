@@ -98,9 +98,9 @@ static PyObject * py_snf3x3(PyObject *self, PyObject *args)
   PyArrayObject* py_P;
   PyArrayObject* py_Q;
 
-  int (*A)[3];
-  int (*P)[3];
-  int (*Q)[3];
+  long (*A)[3];
+  long (*P)[3];
+  long (*Q)[3];
 
   A = NULL;
   P = NULL;
@@ -110,9 +110,9 @@ static PyObject * py_snf3x3(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  A = (int(*)[3])PyArray_DATA(py_A);
-  P = (int(*)[3])PyArray_DATA(py_P);
-  Q = (int(*)[3])PyArray_DATA(py_Q);
+  A = (long(*)[3])PyArray_DATA(py_A);
+  P = (long(*)[3])PyArray_DATA(py_P);
+  Q = (long(*)[3])PyArray_DATA(py_Q);
 
   snf3x3(A, P, Q);
 
