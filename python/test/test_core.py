@@ -1,10 +1,7 @@
 import unittest
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import numpy as np
 from snf3x3 import SNF3x3
+
 
 class TestCore(unittest.TestCase):
 
@@ -23,13 +20,13 @@ class TestCore(unittest.TestCase):
             detA = np.linalg.det(snf.A)
             print(detA)
             snf.run()
-    
+
             print("PAQ")
             PAQ = np.dot(snf.P, np.dot(mat, snf.Q))
             print(PAQ)
             detPAQ = np.linalg.det(PAQ)
             print(detPAQ)
-    
+
             np.testing.assert_almost_equal(np.linalg.det(snf.P), 1)
             np.testing.assert_almost_equal(np.linalg.det(snf.Q), 1)
             np.testing.assert_almost_equal(detPAQ, detA)
@@ -40,6 +37,7 @@ class TestCore(unittest.TestCase):
         if np.linalg.det(mat) < 0.5:
             mat = self._get_random_mat()
         return mat
+
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestCore)
